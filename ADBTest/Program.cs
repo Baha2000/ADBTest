@@ -13,8 +13,8 @@ namespace ADBTest
         {
             var start = new ADBServerHandler();
             PackageManagerHandler.appdirectory = @"C:\Info\Android\com.finchtechnologies.trackingtestingandroid.apk";
-            PackageManagerHandler.inputfile = @"C:\config";
-            PackageManagerHandler.outputfile = @"C:\Users\aliev\TrackingTestingAndroid.log";
+            FileUploadHandler.inputfile = @"C:\config";
+            FileDownloadHandler.outputfile = @"C:\Users\aliev\TrackingTestingAndroid.log";
             start.Handle();
 
             //var server = new ADBServerHandler();
