@@ -2,15 +2,18 @@
 {
     class ADBClientHandler : BaseHandler
     {
-        public override object Handle(object request)
+        public static SharpAdbClient.AdbClient client { get; private set; }
+
+        public override BaseHandler Handle()
         {
-            SharpAdbClient.AdbClient client = new();
+            client = new();
             var devices = client.GetDevices();
             foreach (var device in devices)
             {
                 System.Console.WriteLine(device);
             }
-            return base.Handle(client);
+            SetNext(new PackageManagerHandler());
+            return base.Handle();
         }
     }
 }

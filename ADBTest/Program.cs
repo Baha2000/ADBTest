@@ -1,9 +1,9 @@
-﻿using System;
+﻿using SharpAdbClient;
+using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
-using SharpAdbClient;
-using SharpAdbClient.DeviceCommands;
 
 namespace ADBTest
 {
@@ -11,19 +11,18 @@ namespace ADBTest
     {
         static void Main(string[] args)
         {
-            var server = new ADBServerHandler();
-            var client = new ADBClientHandler();
-            var package = new PackageManagerHandler();
-            
-            server.SetNext(client).SetNext(package);
-            
-            server.Handle("Start");
+            var start = new ADBServerHandler();
+
+            start.Handle();
+
+            //var server = new ADBServerHandler();
+            //var client = new ADBClientHandler();
+            //var package = new PackageManagerHandler();
+            //
+            //server.SetNext(client).SetNext(package);
+            //
+            //server.Handle();
             Console.ReadKey();
-
-
-
-
-
 
 
             //SharpAdbClient.AdbServer server = new();
@@ -60,5 +59,7 @@ namespace ADBTest
             //Console.ReadKey();
 
         }
+
+
     }
 }

@@ -1,26 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ADBTest
+﻿namespace ADBTest
 {
-    abstract class BaseHandler : IHandler
+    abstract class BaseHandler
     {
-        private IHandler nextHandler;
+        private static BaseHandler nextHandler;
 
-        public IHandler SetNext(IHandler handler)
+        public static BaseHandler SetNext(BaseHandler handler)
         {
-            this.nextHandler = handler;
+            nextHandler = handler;
             return handler;
         }
 
-        public virtual object Handle(object request)
+        public virtual BaseHandler Handle()
         {
-            if (this.nextHandler != null)
+            if (nextHandler != null)
             {
-                return this.nextHandler.Handle(request);
+                return nextHandler.Handle();
             }
             else
             {
