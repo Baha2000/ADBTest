@@ -2,6 +2,7 @@
 {
     class ADBServerHandler : BaseHandler
     {
+        public static string serverdirectory { get; set; }
         public override BaseHandler Handle()
         {
                 SharpAdbClient.AdbServer server = new();
