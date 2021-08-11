@@ -1,6 +1,6 @@
 ﻿namespace ADBTest
 {
-    class ADBClientHandler : BaseHandler
+    public class ADBClientHandler : BaseHandler
     {
         public static SharpAdbClient.AdbClient client { get; private set; }
 

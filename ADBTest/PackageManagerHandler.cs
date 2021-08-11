@@ -1,24 +1,25 @@
-﻿using SharpAdbClient;
-using System;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading;
+﻿using System.Linq;
+using SharpAdbClient;
 
 namespace ADBTest
 {
-    class PackageManagerHandler : BaseHandler
+    public class PackageManagerHandler : BaseHandler
     {
 
-        public static string appdirectory { get; set; }
+        public string AppDirectory { get; private set; }
 
-        public static ConsoleOutputReceiver receiver { get; set;}
+        public static ConsoleOutputReceiver Receiver { get; private set;}
+
+        public PackageManagerHandler(string directory)
+        {
+            AppDirectory = directory;
+        }
 
         public override BaseHandler Handle()
         {
             SharpAdbClient.DeviceCommands.PackageManager manager = new(ADBClientHandler.client, ADBClientHandler.client.GetDevices().First());
-            manager.InstallPackage(appdirectory, reinstall: true);
-            receiver = new();
+            manager.InstallPackage(AppDirectory, reinstall: true);
+            Receiver = new();
             return base.Handle();
         }
     }

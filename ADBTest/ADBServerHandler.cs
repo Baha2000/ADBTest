@@ -1,12 +1,17 @@
 ﻿namespace ADBTest
 {
-    class ADBServerHandler : BaseHandler
+    public class ADBServerHandler : BaseHandler
     {
-        public static string serverdirectory { get; set; }
+        public string ServerDirectory { get; private set; }
+
+        public ADBServerHandler(string directory)
+        {
+            ServerDirectory = directory;
+        }
         public override BaseHandler Handle()
         {
                 SharpAdbClient.AdbServer server = new();
-                var result = server.StartServer(@"C:\Info\Android\platform-tools\adb.exe", restartServerIfNewer: false);
+                server.StartServer(ServerDirectory, restartServerIfNewer: false);
                 System.Console.WriteLine(server.GetStatus());
                 return base.Handle();
         }

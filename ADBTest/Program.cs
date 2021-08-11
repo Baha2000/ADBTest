@@ -1,26 +1,23 @@
-﻿using SharpAdbClient;
-using System;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading;
+﻿using System;
 
 namespace ADBTest
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            var start = new ADBServerHandler();
+            var start = new ADBServerHandler(@"D:\Program Files\platform-tools\adb.exe");
 
-            start.SetNext(new ADBClientHandler()).SetNext(new PackageManagerHandler()).SetNext(new FileUploadHandler()).SetNext(new CommandLineHandler()).
-                SetNext(new FileDownloadHandler());
-
-            PackageManagerHandler.appdirectory = @"C:\Info\Android\com.finchtechnologies.trackingtestingandroid.apk";
-            FileUploadHandler.inputfile = @"C:\config";
-            FileDownloadHandler.outputfile = @"C:\Users\aliev\TrackingTestingAndroid.log";
+            start.SetNext(new ADBClientHandler()).SetNext(
+                new PackageManagerHandler(@"D:\Program Files\Files\com.finchtechnologies.trackingtestingandroid.apk")).SetNext(
+                new FileUploadHandler(@"D:\Program Files\Files\Testing.txt")).SetNext(
+                new CommandLineHandler()).SetNext(
+                new FileDownloadHandler(@"D:\Program Files\Files\TrackingTestingAndroid.log"));
             start.Handle();
-
+            Console.ReadKey();
+            //PackageManagerHandler.appdirectory = @"D:\Program Files\Files\com.finchtechnologies.trackingtestingandroid.apk";
+            //FileUploadHandler.inputfile = @"D:\Program Files\Files\Testing.txt";
+            //FileDownloadHandler.outputfile = @"D:\Program Files\Files\TrackingTestingAndroid.log";
             //var server = new ADBServerHandler();
             //var client = new ADBClientHandler();
             //var package = new PackageManagerHandler();
@@ -28,7 +25,7 @@ namespace ADBTest
             //server.SetNext(client).SetNext(package);
             //
             //server.Handle();
-            Console.ReadKey();
+
 
 
             //SharpAdbClient.AdbServer server = new();

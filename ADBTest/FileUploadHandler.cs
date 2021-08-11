@@ -7,16 +7,21 @@ using System.Threading;
 
 namespace ADBTest
 {
-    class FileUploadHandler : BaseHandler
+    public class FileUploadHandler : BaseHandler
     {
-        public static string inputfile { get; set; }
+        public string Inputfile { get; private set; }
+
+        public FileUploadHandler(string directory)
+        {
+            Inputfile = directory;
+        }
 
         public override BaseHandler Handle()
         {
             var device = ADBClientHandler.client.GetDevices().First();
 
             using (SyncService service = new SyncService(new AdbSocket(new IPEndPoint(IPAddress.Loopback, AdbClient.AdbServerPort)), device))
-            using (Stream stream = File.OpenRead(inputfile))
+            using (Stream stream = File.OpenRead(Inputfile))
             {
                 service.Push(stream, "/sdcard/Databases/Standard/config", 444, DateTime.Now, null, CancellationToken.None);
             }
