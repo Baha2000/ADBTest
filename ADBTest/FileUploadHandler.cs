@@ -21,7 +21,6 @@ namespace ADBTest
                 service.Push(stream, "/sdcard/Databases/Standard/config", 444, DateTime.Now, null, CancellationToken.None);
             }
 
-            SetNext(new CommandLineHandler());
             return base.Handle();
         }
     }

@@ -9,6 +9,7 @@ namespace ADBTest
 {
     class PackageManagerHandler : BaseHandler
     {
+
         public static string appdirectory { get; set; }
 
         public static ConsoleOutputReceiver receiver { get; set;}
@@ -18,7 +19,6 @@ namespace ADBTest
             SharpAdbClient.DeviceCommands.PackageManager manager = new(ADBClientHandler.client, ADBClientHandler.client.GetDevices().First());
             manager.InstallPackage(appdirectory, reinstall: true);
             receiver = new();
-            SetNext(new FileUploadHandler());
             return base.Handle();
         }
     }

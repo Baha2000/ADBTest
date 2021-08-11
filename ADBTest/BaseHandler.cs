@@ -1,10 +1,10 @@
 ﻿namespace ADBTest
 {
-    abstract class BaseHandler
+    public abstract class BaseHandler
     {
-        private static BaseHandler nextHandler;
+        private BaseHandler nextHandler;
 
-        public static BaseHandler SetNext(BaseHandler handler)
+        public BaseHandler SetNext(BaseHandler handler)
         {
             nextHandler = handler;
             return handler;

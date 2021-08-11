@@ -12,7 +12,6 @@
             {
                 System.Console.WriteLine(device);
             }
-            SetNext(new PackageManagerHandler());
             return base.Handle();
         }
     }

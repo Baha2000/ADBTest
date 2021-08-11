@@ -16,7 +16,6 @@ namespace ADBTest
             ADBClientHandler.client.ExecuteRemoteCommand("input tap 360 640", ADBClientHandler.client.GetDevices().First(), PackageManagerHandler.receiver);
             Thread.Sleep(3000);
 
-            SetNext(new FileDownloadHandler());
             return base.Handle();
         }
     }

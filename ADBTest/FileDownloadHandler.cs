@@ -20,7 +20,6 @@ namespace ADBTest
                 service.Pull("/sdcard/TrackingTestingAndroid.log", stream, null, CancellationToken.None);
             }
             System.Console.WriteLine("Success");
-            SetNext(null);
             return base.Handle();
         }
     }

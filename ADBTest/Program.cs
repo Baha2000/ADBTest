@@ -12,6 +12,10 @@ namespace ADBTest
         static void Main(string[] args)
         {
             var start = new ADBServerHandler();
+
+            start.SetNext(new ADBClientHandler()).SetNext(new PackageManagerHandler()).SetNext(new FileUploadHandler()).SetNext(new CommandLineHandler()).
+                SetNext(new FileDownloadHandler());
+
             PackageManagerHandler.appdirectory = @"C:\Info\Android\com.finchtechnologies.trackingtestingandroid.apk";
             FileUploadHandler.inputfile = @"C:\config";
             FileDownloadHandler.outputfile = @"C:\Users\aliev\TrackingTestingAndroid.log";
