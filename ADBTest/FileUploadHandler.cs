@@ -9,9 +9,9 @@ namespace ADBTest
 {
     public class FileUploadHandler : BaseHandler
     {
-        public string Inputfile { get; private set; }
+        public string[] Inputfile { get; private set; }
 
-        public FileUploadHandler(string directory)
+        public FileUploadHandler(string[] directory)
         {
             Inputfile = directory;
         }
@@ -20,12 +20,14 @@ namespace ADBTest
         {
             var device = ADBClientHandler.client.GetDevices().First();
 
-            using (SyncService service = new SyncService(new AdbSocket(new IPEndPoint(IPAddress.Loopback, AdbClient.AdbServerPort)), device))
-            using (Stream stream = File.OpenRead(Inputfile))
-            {
-                service.Push(stream, "/sdcard/Databases/Standard/config", 444, DateTime.Now, null, CancellationToken.None);
-            }
-
+                foreach (string file in Inputfile)
+                {
+                using (SyncService service = new SyncService(new AdbSocket(new IPEndPoint(IPAddress.Loopback, AdbClient.AdbServerPort)), device))
+                using (Stream stream = File.OpenRead(file))
+                    {
+                        service.Push(stream, $"/sdcard/Databases/Standard/{file.Remove(0, file.LastIndexOf('\\') + 1)}", 444, DateTime.Now, null, CancellationToken.None);
+                    }
+                }
             return base.Handle();
         }
     }

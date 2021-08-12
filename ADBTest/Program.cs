@@ -7,10 +7,16 @@ namespace ADBTest
         private static void Main(string[] args)
         {
             var start = new ADBServerHandler(@"D:\Program Files\platform-tools\adb.exe");
+            string[] Inputfiles = new string[5];
 
+            Inputfiles[0] = @"D:\Program Files\Files\Testing1.txt";
+            Inputfiles[1] = @"D:\Program Files\Files\Testing2.txt";
+            Inputfiles[2] = @"D:\Program Files\Files\Testing3.txt";
+            Inputfiles[3] = @"D:\Program Files\Files\Testing4.txt";
+            Inputfiles[4] = @"D:\Program Files\Files\Testing5.txt";
             start.SetNext(new ADBClientHandler()).SetNext(
                 new PackageManagerHandler(@"D:\Program Files\Files\com.finchtechnologies.trackingtestingandroid.apk")).SetNext(
-                new FileUploadHandler(@"D:\Program Files\Files\Testing.txt")).SetNext(
+                new FileUploadHandler(Inputfiles)).SetNext(
                 new CommandLineHandler()).SetNext(
                 new FileDownloadHandler(@"D:\Program Files\Files\TrackingTestingAndroid.log"));
             start.Handle();
