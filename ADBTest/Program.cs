@@ -4,10 +4,10 @@ namespace ADBTest
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
-            var start = new ADBServerHandler(@"D:\Program Files\platform-tools\adb.exe");
-            string[] inputFiles = new string[]
+            var start = new AdbServerHandler(@"D:\Program Files\platform-tools\adb.exe");
+            var inputFiles = new string[]
             {
                 @"D:\Program Files\Files\Testing1.txt",
                 @"D:\Program Files\Files\Testing2.txt",
@@ -15,7 +15,7 @@ namespace ADBTest
                 @"D:\Program Files\Files\Testing4.txt",
                 @"D:\Program Files\Files\Testing5.txt"
             };
-            string[] outputFiles = new string[]
+            var outputFiles = new string[]
             {
                 @"D:\Program Files\Files\TrackingTestingAndroid1.log",
                 @"D:\Program Files\Files\TrackingTestingAndroid2.log",
@@ -23,11 +23,11 @@ namespace ADBTest
                 @"D:\Program Files\Files\TrackingTestingAndroid4.log",
                 @"D:\Program Files\Files\TrackingTestingAndroid5.log"
             };
-            start.SetNext(new ADBClientHandler()).SetNext(
+            start.SetNext(new AdbClientHandler()).SetNext(
                 new PackageManagerHandler(@"D:\Program Files\Files\com.finchtechnologies.trackingtestingandroid.apk")).SetNext(
                 new FileUploadHandler(inputFiles)).SetNext(
                 //new CommandLineHandler()).SetNext(
-                new FileDownloadHandler(outputFiles));
+                new FileDownloadHandler(outputFiles)).SetNext(null);
             start.Handle();
             Console.ReadKey();
             //PackageManagerHandler.appdirectory = @"D:\Program Files\Files\com.finchtechnologies.trackingtestingandroid.apk";
