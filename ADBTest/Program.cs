@@ -7,7 +7,7 @@ namespace ADBTest
         private static void Main()
         {
             var start = new AdbServerHandler(@"D:\Program Files\platform-tools\adb.exe");
-            var inputFiles = new string[]
+            var inputFiles = new[]
             {
                 @"D:\Program Files\Files\Testing1.txt",
                 @"D:\Program Files\Files\Testing2.txt",
@@ -15,7 +15,7 @@ namespace ADBTest
                 @"D:\Program Files\Files\Testing4.txt",
                 @"D:\Program Files\Files\Testing5.txt"
             };
-            var outputFiles = new string[]
+            var outputFiles = new[]
             {
                 @"D:\Program Files\Files\TrackingTestingAndroid1.log",
                 @"D:\Program Files\Files\TrackingTestingAndroid2.log",

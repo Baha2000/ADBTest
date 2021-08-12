@@ -1,50 +1,37 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using SharpAdbClient;
+using SharpAdbClient.DeviceCommands;
 
 namespace ADBTest
 {
     public abstract class BaseHandler
     {
-        private BaseHandler _nextHandler;
+        private BaseHandler nextHandler;
 
         protected ConsoleOutputReceiver Receiver { get; set; }
 
         public BaseHandler SetNext(BaseHandler handler)
         {
-            _nextHandler = handler;
+            nextHandler = handler;
             return handler;
         }
 
-        public virtual BaseHandler Handle()
-        {
-            if (_nextHandler != null)
-            {
-                return _nextHandler.Handle();
-            }
-            else
-            {
-                return null;
-            }
-        }
+        public virtual BaseHandler Handle() => nextHandler?.Handle();
     }
 
     public class AdbServerHandler : BaseHandler
     {
-        private string ServerDirectory { get; set; }
+        private readonly string serverDirectory;
 
-        public AdbServerHandler(string directory)
-        {
-            ServerDirectory = directory;
-        }
+        public AdbServerHandler(string directory) => serverDirectory = directory;
 
         public override BaseHandler Handle()
         {
             AdbServer server = new();
-            server.StartServer(ServerDirectory, restartServerIfNewer: false);
+            server.StartServer(serverDirectory, restartServerIfNewer: false);
             Console.WriteLine(server.GetStatus());
             return base.Handle();
         }
@@ -52,65 +39,60 @@ namespace ADBTest
 
     public class AdbClientHandler : BaseHandler
     {
-        public static AdbClient Client { get; private set; }
+        public static AdbClient Client { get; } = new();
+        public static DeviceData Device { get; private set; }
 
         public override BaseHandler Handle()
         {
-            Client = new AdbClient();
             var devices = Client.GetDevices();
-            foreach (var device in devices)
+            Console.WriteLine("Select device:");
+            for (int i = 0; i < devices.Count; i++)
             {
-                Console.WriteLine(device);
+                Console.WriteLine($"{i + 1} - {devices[i]}");
             }
 
+            Device = devices[int.Parse(Console.ReadLine() ?? "1") - 1];
             return base.Handle();
         }
     }
 
     public class PackageManagerHandler : BaseHandler
     {
-        private string AppDirectory { get; set; }
+        private readonly string appDirectory;
 
-        public PackageManagerHandler(string directory)
-        {
-            AppDirectory = directory;
-        }
+        public PackageManagerHandler(string directory) => appDirectory = directory;
 
         public override BaseHandler Handle()
         {
-            SharpAdbClient.DeviceCommands.PackageManager manager = new(AdbClientHandler.Client,
-                AdbClientHandler.Client.GetDevices().First());
-            manager.InstallPackage(AppDirectory, reinstall: true);
-            Receiver = new();
+            PackageManager manager = new(AdbClientHandler.Client, AdbClientHandler.Device);
+            manager.InstallPackage(appDirectory, reinstall: true);
+            Receiver = new ConsoleOutputReceiver();
             return base.Handle();
         }
     }
 
     public class CommandLineHandler : BaseHandler
     {
-        private const int Time = 3000;
+        private readonly TimeSpan delay = TimeSpan.FromSeconds(3);
 
-        private const string PermCommand =
+        private const string permCommand =
             "pm grant com.finchtechnologies.trackingtestingandroid android.permission.WRITE_EXTERNAL_STORAGE";
 
-        private const string AppStartCommand =
+        private const string appStartCommand =
             "monkey -p com.finchtechnologies.trackingtestingandroid -c android.intent.category.LAUNCHER 1";
 
-        private const string TapCommand = "input tap 360 640";
+        private const string tapCommand = "input tap 360 640";
 
 
         public override BaseHandler Handle()
         {
-            Thread.Sleep(Time);
-            AdbClientHandler.Client.ExecuteRemoteCommand(PermCommand, AdbClientHandler.Client.GetDevices().First(),
-                Receiver);
-            Thread.Sleep(Time);
-            AdbClientHandler.Client.ExecuteRemoteCommand(AppStartCommand, AdbClientHandler.Client.GetDevices().First(),
-                Receiver);
-            Thread.Sleep(Time);
-            AdbClientHandler.Client.ExecuteRemoteCommand(TapCommand, AdbClientHandler.Client.GetDevices().First(),
-                Receiver);
-            Thread.Sleep(Time);
+            Thread.Sleep(delay);
+            AdbClientHandler.Client.ExecuteRemoteCommand(permCommand, AdbClientHandler.Device, Receiver);
+            Thread.Sleep(delay);
+            AdbClientHandler.Client.ExecuteRemoteCommand(appStartCommand, AdbClientHandler.Device, Receiver);
+            Thread.Sleep(delay);
+            AdbClientHandler.Client.ExecuteRemoteCommand(tapCommand, AdbClientHandler.Device, Receiver);
+            Thread.Sleep(delay);
 
             return base.Handle();
         }
@@ -118,28 +100,24 @@ namespace ADBTest
 
     public class FileUploadHandler : BaseHandler
     {
-        private string[] Inputfile { get; set; }
-        private string FileName { get; set; }
-        private const string ApkDirectory = "/sdcard/Databases/Emulated/";
+        private readonly string[] inputfile;
+        private string fileName;
+        private const string apkDirectory = "/sdcard/Databases/Standard/";
 
-        public FileUploadHandler(string[] directory)
-        {
-            Inputfile = directory;
-        }
+        public FileUploadHandler(string[] directory) => inputfile = directory;
 
         public override BaseHandler Handle()
         {
-            var device = AdbClientHandler.Client.GetDevices().First();
+            var device = AdbClientHandler.Device;
 
-            foreach (var file in Inputfile)
+            foreach (var file in inputfile)
             {
-                FileName = file.Remove(0, file.LastIndexOf('\\') + 1);
+                fileName = file.Remove(0, file.LastIndexOf('\\') + 1);
                 using var service =
                     new SyncService(new AdbSocket(new IPEndPoint(IPAddress.Loopback, AdbClient.AdbServerPort)), device);
                 using Stream stream = File.OpenRead(file);
-                {
-                    service.Push(stream, ApkDirectory + FileName, 444, DateTime.Now, null, CancellationToken.None);
-                }
+                service.Push(stream, Path.Combine(apkDirectory, fileName), 444, DateTime.Now, null,
+                    CancellationToken.None);
             }
 
             return base.Handle();
@@ -148,41 +126,38 @@ namespace ADBTest
 
     public class FileDownloadHandler : BaseHandler
     {
-        private string[] Outputfile { get; set; }
-        private const int Time = 1000;
-        private const string PrefixCommand = "FILE=/sdcard/DataBases/Emulated/";
-        private const string PostfixCommand = " ; if test -f \"$FILE\"; then echo \"exist\" ; fi";
-        private const string ApkDirectory = "/sdcard/Databases/Emulated/";
-        private string FileName { get; set; }
+        private readonly string[] outputfile;
+        private readonly TimeSpan delay = TimeSpan.FromSeconds(1);
 
-        public FileDownloadHandler(string[] directory)
-        {
-            Outputfile = directory;
-        }
+        private const string checkFileCommandTemplate =
+            "FILE=/sdcard/DataBases/Emulated/{0} ; if test -f \"$FILE\"; then echo \"exist\" ; fi";
+
+        private const string apkDirectory = "/sdcard/Databases/Emulated/";
+        private string fileName;
+
+        public FileDownloadHandler(string[] directory) => outputfile = directory;
 
         public override BaseHandler Handle()
         {
-            var device = AdbClientHandler.Client.GetDevices().First();
+            var device = AdbClientHandler.Device;
 
-            foreach (string file in Outputfile)
+            foreach (var file in outputfile)
             {
                 Receiver = new ConsoleOutputReceiver();
-                FileName = file.Remove(0, file.LastIndexOf('\\') + 1);
+                fileName = file.Remove(0, file.LastIndexOf('\\') + 1);
+                var command = string.Format(checkFileCommandTemplate, fileName);
                 while (Receiver.ToString() != "exist\r\n")
                 {
-                    AdbClientHandler.Client.ExecuteRemoteCommand(PrefixCommand + FileName + PostfixCommand,
-                        AdbClientHandler.Client.GetDevices().First(), Receiver);
+                    AdbClientHandler.Client.ExecuteRemoteCommand(command, AdbClientHandler.Device, Receiver);
                     Console.WriteLine(Receiver.ToString());
-                    Thread.Sleep(Time);
+                    Thread.Sleep(delay);
                 }
 
                 Console.WriteLine($"I found {file}");
                 using var service =
                     new SyncService(new AdbSocket(new IPEndPoint(IPAddress.Loopback, AdbClient.AdbServerPort)), device);
                 using Stream stream = File.OpenWrite(file);
-                {
-                    service.Pull(ApkDirectory + FileName, stream, null, CancellationToken.None);
-                }
+                service.Pull(Path.Combine(apkDirectory, fileName), stream, null, CancellationToken.None);
             }
 
             Console.WriteLine("Success");
