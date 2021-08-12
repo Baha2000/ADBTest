@@ -7,6 +7,31 @@ using SharpAdbClient;
 
 namespace ADBTest
 {
+    public abstract class BaseHandler
+    {
+        private BaseHandler _nextHandler;
+
+        protected ConsoleOutputReceiver Receiver { get; set; }
+
+        public BaseHandler SetNext(BaseHandler handler)
+        {
+            _nextHandler = handler;
+            return handler;
+        }
+
+        public virtual BaseHandler Handle()
+        {
+            if (_nextHandler != null)
+            {
+                return _nextHandler.Handle();
+            }
+            else
+            {
+                return null;
+            }
+        }
+    }
+
     public class AdbServerHandler : BaseHandler
     {
         private string ServerDirectory { get; set; }
@@ -46,8 +71,6 @@ namespace ADBTest
     {
         private string AppDirectory { get; set; }
 
-        //public static ConsoleOutputReceiver Receiver { get; set;}
-
         public PackageManagerHandler(string directory)
         {
             AppDirectory = directory;
@@ -67,19 +90,26 @@ namespace ADBTest
     {
         private const int Time = 3000;
 
+        private const string PermCommand =
+            "pm grant com.finchtechnologies.trackingtestingandroid android.permission.WRITE_EXTERNAL_STORAGE";
+
+        private const string AppStartCommand =
+            "monkey -p com.finchtechnologies.trackingtestingandroid -c android.intent.category.LAUNCHER 1";
+
+        private const string TapCommand = "input tap 360 640";
+
+
         public override BaseHandler Handle()
         {
             Thread.Sleep(Time);
-            AdbClientHandler.Client.ExecuteRemoteCommand(
-                "pm grant com.finchtechnologies.trackingtestingandroid android.permission.WRITE_EXTERNAL_STORAGE",
-                AdbClientHandler.Client.GetDevices().First(), Receiver);
+            AdbClientHandler.Client.ExecuteRemoteCommand(PermCommand, AdbClientHandler.Client.GetDevices().First(),
+                Receiver);
             Thread.Sleep(Time);
-            AdbClientHandler.Client.ExecuteRemoteCommand(
-                "monkey -p com.finchtechnologies.trackingtestingandroid -c android.intent.category.LAUNCHER 1",
-                AdbClientHandler.Client.GetDevices().First(), Receiver);
+            AdbClientHandler.Client.ExecuteRemoteCommand(AppStartCommand, AdbClientHandler.Client.GetDevices().First(),
+                Receiver);
             Thread.Sleep(Time);
-            AdbClientHandler.Client.ExecuteRemoteCommand("input tap 360 640",
-                AdbClientHandler.Client.GetDevices().First(), Receiver);
+            AdbClientHandler.Client.ExecuteRemoteCommand(TapCommand, AdbClientHandler.Client.GetDevices().First(),
+                Receiver);
             Thread.Sleep(Time);
 
             return base.Handle();
@@ -89,6 +119,8 @@ namespace ADBTest
     public class FileUploadHandler : BaseHandler
     {
         private string[] Inputfile { get; set; }
+        private string FileName { get; set; }
+        private const string ApkDirectory = "/sdcard/Databases/Emulated/";
 
         public FileUploadHandler(string[] directory)
         {
@@ -101,13 +133,12 @@ namespace ADBTest
 
             foreach (var file in Inputfile)
             {
-                using (var service =
-                    new SyncService(new AdbSocket(new IPEndPoint(IPAddress.Loopback, AdbClient.AdbServerPort)), device))
-                using (Stream stream = File.OpenRead(file))
+                FileName = file.Remove(0, file.LastIndexOf('\\') + 1);
+                using var service =
+                    new SyncService(new AdbSocket(new IPEndPoint(IPAddress.Loopback, AdbClient.AdbServerPort)), device);
+                using Stream stream = File.OpenRead(file);
                 {
-                    //service.Push(stream, $"/sdcard/Databases/Standard/{file.Remove(0, file.LastIndexOf('\\') + 1)}", 444, DateTime.Now, null, CancellationToken.None);
-                    service.Push(stream, $"/sdcard/Databases/Emulated/{file.Remove(0, file.LastIndexOf('\\') + 1)}",
-                        444, DateTime.Now, null, CancellationToken.None);
+                    service.Push(stream, ApkDirectory + FileName, 444, DateTime.Now, null, CancellationToken.None);
                 }
             }
 
@@ -118,8 +149,11 @@ namespace ADBTest
     public class FileDownloadHandler : BaseHandler
     {
         private string[] Outputfile { get; set; }
-
         private const int Time = 1000;
+        private const string PrefixCommand = "FILE=/sdcard/DataBases/Emulated/";
+        private const string PostfixCommand = " ; if test -f \"$FILE\"; then echo \"exist\" ; fi";
+        private const string ApkDirectory = "/sdcard/Databases/Emulated/";
+        private string FileName { get; set; }
 
         public FileDownloadHandler(string[] directory)
         {
@@ -133,24 +167,21 @@ namespace ADBTest
             foreach (string file in Outputfile)
             {
                 Receiver = new ConsoleOutputReceiver();
-                
+                FileName = file.Remove(0, file.LastIndexOf('\\') + 1);
                 while (Receiver.ToString() != "exist\r\n")
                 {
-                    //Receiver = new ConsoleOutputReceiver(); // вот это смотри
-                    AdbClientHandler.Client.ExecuteRemoteCommand(
-                        $"FILE=/sdcard/DataBases/Emulated/{file.Remove(0, file.LastIndexOf('\\') + 1)} ; if test -f \"$FILE\"; then echo \"exist\" ; fi",
+                    AdbClientHandler.Client.ExecuteRemoteCommand(PrefixCommand + FileName + PostfixCommand,
                         AdbClientHandler.Client.GetDevices().First(), Receiver);
                     Console.WriteLine(Receiver.ToString());
                     Thread.Sleep(Time);
                 }
 
                 Console.WriteLine($"I found {file}");
-                using (var service =
-                    new SyncService(new AdbSocket(new IPEndPoint(IPAddress.Loopback, AdbClient.AdbServerPort)), device))
-                using (Stream stream = File.OpenWrite(file))
+                using var service =
+                    new SyncService(new AdbSocket(new IPEndPoint(IPAddress.Loopback, AdbClient.AdbServerPort)), device);
+                using Stream stream = File.OpenWrite(file);
                 {
-                    service.Pull($"/sdcard/Databases/Emulated/{file.Remove(0, file.LastIndexOf('\\') + 1)}", stream,
-                        null, CancellationToken.None);
+                    service.Pull(ApkDirectory + FileName, stream, null, CancellationToken.None);
                 }
             }
 
