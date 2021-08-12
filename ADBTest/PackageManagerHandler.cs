@@ -8,7 +8,7 @@ namespace ADBTest
 
         public string AppDirectory { get; private set; }
 
-        public static ConsoleOutputReceiver Receiver { get; private set;}
+        public static ConsoleOutputReceiver Receiver { get; set;}
 
         public PackageManagerHandler(string directory)
         {

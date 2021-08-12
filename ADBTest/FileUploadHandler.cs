@@ -20,14 +20,15 @@ namespace ADBTest
         {
             var device = ADBClientHandler.client.GetDevices().First();
 
-                foreach (string file in Inputfile)
-                {
+            foreach (string file in Inputfile)
+            {
                 using (SyncService service = new SyncService(new AdbSocket(new IPEndPoint(IPAddress.Loopback, AdbClient.AdbServerPort)), device))
                 using (Stream stream = File.OpenRead(file))
-                    {
-                        service.Push(stream, $"/sdcard/Databases/Standard/{file.Remove(0, file.LastIndexOf('\\') + 1)}", 444, DateTime.Now, null, CancellationToken.None);
-                    }
+                {
+                    //service.Push(stream, $"/sdcard/Databases/Standard/{file.Remove(0, file.LastIndexOf('\\') + 1)}", 444, DateTime.Now, null, CancellationToken.None);
+                    service.Push(stream, $"/sdcard/Databases/Emulated/{file.Remove(0, file.LastIndexOf('\\') + 1)}", 444, DateTime.Now, null, CancellationToken.None);
                 }
+            }
             return base.Handle();
         }
     }
