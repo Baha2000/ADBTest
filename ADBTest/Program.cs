@@ -7,18 +7,27 @@ namespace ADBTest
         private static void Main(string[] args)
         {
             var start = new ADBServerHandler(@"D:\Program Files\platform-tools\adb.exe");
-            string[] Inputfiles = new string[5];
-
-            Inputfiles[0] = @"D:\Program Files\Files\Testing1.txt";
-            Inputfiles[1] = @"D:\Program Files\Files\Testing2.txt";
-            Inputfiles[2] = @"D:\Program Files\Files\Testing3.txt";
-            Inputfiles[3] = @"D:\Program Files\Files\Testing4.txt";
-            Inputfiles[4] = @"D:\Program Files\Files\Testing5.txt";
+            string[] inputFiles = new string[]
+            {
+                @"D:\Program Files\Files\Testing1.txt",
+                @"D:\Program Files\Files\Testing2.txt",
+                @"D:\Program Files\Files\Testing3.txt",
+                @"D:\Program Files\Files\Testing4.txt",
+                @"D:\Program Files\Files\Testing5.txt"
+            };
+            string[] outputFiles = new string[]
+            {
+                @"D:\Program Files\Files\TrackingTestingAndroid1.log",
+                @"D:\Program Files\Files\TrackingTestingAndroid2.log",
+                @"D:\Program Files\Files\TrackingTestingAndroid3.log",
+                @"D:\Program Files\Files\TrackingTestingAndroid4.log",
+                @"D:\Program Files\Files\TrackingTestingAndroid5.log"
+            };
             start.SetNext(new ADBClientHandler()).SetNext(
                 new PackageManagerHandler(@"D:\Program Files\Files\com.finchtechnologies.trackingtestingandroid.apk")).SetNext(
-                new FileUploadHandler(Inputfiles)).SetNext(
-                new CommandLineHandler()).SetNext(
-                new FileDownloadHandler(@"D:\Program Files\Files\TrackingTestingAndroid.log"));
+                new FileUploadHandler(inputFiles)).SetNext(
+                //new CommandLineHandler()).SetNext(
+                new FileDownloadHandler(outputFiles));
             start.Handle();
             Console.ReadKey();
             //PackageManagerHandler.appdirectory = @"D:\Program Files\Files\com.finchtechnologies.trackingtestingandroid.apk";

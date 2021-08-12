@@ -1,8 +1,12 @@
-﻿namespace ADBTest
+﻿using SharpAdbClient;
+
+namespace ADBTest
 {
     public abstract class BaseHandler
     {
         private BaseHandler nextHandler;
+        
+        protected ConsoleOutputReceiver Receiver { get; set;}
 
         public BaseHandler SetNext(BaseHandler handler)
         {
