@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace ADBTest
 {
     internal class Program
     {
-        private static void Main()
+        private static async Task Main()
         {
             var start = new AdbServerHandler(@"D:\Program Files\platform-tools\adb.exe");
             var inputFiles = new[]
@@ -25,10 +26,10 @@ namespace ADBTest
             };
             start.SetNext(new AdbClientHandler()).SetNext(
                 new PackageManagerHandler(@"D:\Program Files\Files\com.finchtechnologies.trackingtestingandroid.apk")).SetNext(
-                new FileUploadHandler(inputFiles)).SetNext(
+                new FileUploadHandler(outputFiles)).SetNext(
                 //new CommandLineHandler()).SetNext(
                 new FileDownloadHandler(outputFiles)).SetNext(null);
-            start.Handle();
+            await start.Handle();
             Console.ReadKey();
         }
     }
